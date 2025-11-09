@@ -30,6 +30,7 @@
 #include "data_structure/union_find.h"
 #include "tlx/logger.hpp"
 #include "tlx/math.hpp"
+#include <optional>
 
 class kernelization_criteria {
  public:

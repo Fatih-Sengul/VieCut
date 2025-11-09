@@ -21,6 +21,7 @@
 #include "algorithms/multicut/multicut_problem.h"
 #include "algorithms/multicut/problem_queues/per_thread_problem_queue.h"
 #include "algorithms/multicut/problem_queues/single_problem_queue.h"
+#include <optional>
 #include "common/configuration.h"
 #include "data_structure/mutable_graph.h"
 

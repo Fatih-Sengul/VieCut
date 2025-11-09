@@ -13,6 +13,7 @@
 #include <mpi.h>
 
 #include <chrono>
+#include <optional>
 #include <memory>
 #include <thread>
 #include <vector>
