@@ -109,6 +109,87 @@ RESULT algo=<name> graph=<file> time=<seconds> cut=<value> n=<nodes> m=<edges> p
 RESULT algo=vc graph=yuzbinlik.metis time=1.234 cut=50 n=100000 m=500000 processes=1 seed=42
 ```
 
+## Otomatik Performans Analizi
+
+`build_and_test.sh` scripti testleri tamamladıktan sonra otomatik olarak 5 aşamalı analiz yapar:
+
+### [1/5] Sequential Algorithms Comparison
+Tüm sequential algoritmaları karşılaştırır ve en hızlısını bulur:
+```
+Algorithm       Time (sec)   Cut Value    Nodes        Edges
+------------------------------------------------------------------------------------
+ks              2.345        50          100000       500000
+noi             1.234        50          100000       500000
+matula          0.987        50          100000       500000
+vc              0.543        50          100000       500000
+pr              3.456        50          100000       500000
+cactus          4.567        50          100000       500000
+------------------------------------------------------------------------------------
+Best Sequential: vc (0.543s)
+```
+
+### [2/5] Parallel Speedup Analysis
+Parallel algoritmalar için speedup (hızlanma) ve efficiency (verimlilik) hesaplar:
+```
+Algorithm       Threads    Time (sec)   Speedup      Efficiency   Status
+------------------------------------------------------------------------------------
+inexact         1          0.612        0.89x        88.72%       ✓ OK
+inexact         2          0.334        1.63x        81.44%       ✓ OK
+inexact         4          0.189        2.87x        71.83%       ✓ OK
+inexact         8          0.125        4.34x        54.29%       ✓ OK
+exact           1          0.589        0.92x        92.19%       ✓ OK
+exact           2          0.312        1.74x        87.02%       ✓ OK
+exact           4          0.167        3.25x        81.29%       ✓ OK
+exact           8          0.098        5.54x        69.23%       ✓ OK
+------------------------------------------------------------------------------------
+Best Speedup: exact (8 threads) (5.54x)
+```
+
+**Metrikler:**
+- **Speedup**: T_sequential / T_parallel (ne kadar hızlandı)
+- **Efficiency**: (Speedup / Thread_sayısı) × 100% (kaynaklar ne kadar verimli kullanıldı)
+- **Status**: Cut değeri referans ile eşleşiyor mu?
+
+### [3/5] Scalability Analysis (Strong Scaling)
+Her parallel algoritma için 1-thread baseline'a göre ölçeklenebilirliği gösterir:
+```
+Algorithm: inexact
+  Threads    Time (sec)   Speedup      Efficiency
+  1          0.612        1.00x        100.00%
+  2          0.334        1.83x        91.62%
+  4          0.189        3.24x        80.95%
+  8          0.125        4.90x        61.22%
+
+Algorithm: exact
+  Threads    Time (sec)   Speedup      Efficiency
+  1          0.589        1.00x        100.00%
+  2          0.312        1.89x        94.39%
+  4          0.167        3.53x        88.18%
+  8          0.098        6.01x        75.13%
+```
+
+### [4/5] Program Variant Comparison
+Farklı mincut varyantlarını karşılaştırır:
+```
+Variant              Time (sec)   Cut Value
+------------------------------------------------------------------------------------
+base                 0.543        50
+contract             0.612        50
+heavy                0.678        50
+recursive            0.589        50
+```
+
+### [5/5] CSV Export
+Tüm sonuçları CSV formatında export eder (`test_results_YYYYMMDD_HHMMSS.csv`):
+```
+Algorithm,Variant,Threads,Time,Cut,Nodes,Edges,Speedup,Efficiency
+vc,base,1,0.543,50,100000,500000,1.000,100.000
+inexact,base,4,0.189,50,100000,500000,2.873,71.825
+exact,base,8,0.098,50,100000,500000,5.541,69.255
+```
+
+Bu CSV dosyası Excel, Python (pandas), R, veya diğer analiz araçlarında kullanılabilir.
+
 ## Sorun Giderme
 
 ### "Please select a minimum cut..." hatası
