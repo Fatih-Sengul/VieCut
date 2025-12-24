@@ -41,3 +41,8 @@ cmake-build-*
 .idea/*
 .vscode/*
 */.vscode/*
+
+# Downloaded graph datasets
+graphs/*.txt
+graphs/*.metis
+graphs/*.gz
