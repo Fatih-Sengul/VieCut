@@ -45,11 +45,14 @@ mkdir -p ../graphs
 ./gnp_torus -n 1000 -b 10 -c 5 -s 42 -o ../graphs
 
 # Rename to yuzbinlik.metis
-if [ -f "../graphs/graph.metis" ]; then
-    mv ../graphs/graph.metis ../graphs/yuzbinlik.metis
+# gnp_torus creates file with name: gnp_<n>_<b>_<c>_<s>
+EXPECTED_GRAPH="../graphs/gnp_1000_10_5_42"
+if [ -f "$EXPECTED_GRAPH" ]; then
+    mv $EXPECTED_GRAPH ../graphs/yuzbinlik.metis
     echo -e "${GREEN}Graph created: ../graphs/yuzbinlik.metis${NC}"
 else
     echo -e "${RED}ERROR: Graph file not created!${NC}"
+    echo -e "${RED}Expected file: $EXPECTED_GRAPH${NC}"
     exit 1
 fi
 echo ""
