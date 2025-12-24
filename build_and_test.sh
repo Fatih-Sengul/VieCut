@@ -86,7 +86,7 @@ SEQ_ALGOS=("ks" "noi" "matula" "vc" "pr" "cactus")
 
 for algo in "${SEQ_ALGOS[@]}"; do
     echo -e "${YELLOW}Testing mincut with $algo...${NC}" | tee -a $LOG_FILE
-    ./mincut $GRAPH $algo -r 42 -v 2>&1 | tee -a $LOG_FILE
+    ./mincut $GRAPH $algo -v 2>&1 | tee -a $LOG_FILE
     echo "" | tee -a $LOG_FILE
 done
 
@@ -101,7 +101,7 @@ THREADS=("1" "2" "4" "8")
 for algo in "${PAR_ALGOS[@]}"; do
     for thread in "${THREADS[@]}"; do
         echo -e "${YELLOW}Testing mincut_parallel with $algo (threads=$thread)...${NC}" | tee -a $LOG_FILE
-        ./mincut_parallel $GRAPH $algo -p $thread -r 42 -v 2>&1 | tee -a $LOG_FILE
+        ./mincut_parallel $GRAPH $algo -p $thread -v 2>&1 | tee -a $LOG_FILE
         echo "" | tee -a $LOG_FILE
     done
 done
@@ -114,7 +114,7 @@ echo -e "${GREEN}=== Contract Variants ===${NC}" | tee -a $LOG_FILE
 # Sequential
 for algo in "${SEQ_ALGOS[@]}"; do
     echo -e "${YELLOW}Testing mincut_contract with $algo...${NC}" | tee -a $LOG_FILE
-    ./mincut_contract $GRAPH $algo -r 42 -v 2>&1 | tee -a $LOG_FILE
+    ./mincut_contract $GRAPH $algo $GRAPH 2>&1 | tee -a $LOG_FILE
     echo "" | tee -a $LOG_FILE
 done
 
@@ -122,7 +122,7 @@ done
 for algo in "${PAR_ALGOS[@]}"; do
     for thread in "${THREADS[@]}"; do
         echo -e "${YELLOW}Testing mincut_contract_parallel with $algo (threads=$thread)...${NC}" | tee -a $LOG_FILE
-        ./mincut_contract_parallel $GRAPH $algo -p $thread -r 42 -v 2>&1 | tee -a $LOG_FILE
+        ./mincut_contract_parallel $GRAPH $algo $GRAPH -p $thread 2>&1 | tee -a $LOG_FILE
         echo "" | tee -a $LOG_FILE
     done
 done
@@ -135,7 +135,7 @@ echo -e "${GREEN}=== Heavy Variants ===${NC}" | tee -a $LOG_FILE
 # Sequential
 for algo in "${SEQ_ALGOS[@]}"; do
     echo -e "${YELLOW}Testing mincut_heavy with $algo...${NC}" | tee -a $LOG_FILE
-    ./mincut_heavy $GRAPH $algo -r 42 -v 2>&1 | tee -a $LOG_FILE
+    ./mincut_heavy $GRAPH $algo 2>&1 | tee -a $LOG_FILE
     echo "" | tee -a $LOG_FILE
 done
 
@@ -143,7 +143,7 @@ done
 for algo in "${PAR_ALGOS[@]}"; do
     for thread in "${THREADS[@]}"; do
         echo -e "${YELLOW}Testing mincut_heavy_parallel with $algo (threads=$thread)...${NC}" | tee -a $LOG_FILE
-        ./mincut_heavy_parallel $GRAPH $algo -p $thread -r 42 -v 2>&1 | tee -a $LOG_FILE
+        ./mincut_heavy_parallel $GRAPH $algo -p $thread 2>&1 | tee -a $LOG_FILE
         echo "" | tee -a $LOG_FILE
     done
 done
@@ -153,20 +153,16 @@ done
 # ================================
 echo -e "${GREEN}=== Recursive Variants ===${NC}" | tee -a $LOG_FILE
 
-# Sequential
-for algo in "${SEQ_ALGOS[@]}"; do
-    echo -e "${YELLOW}Testing mincut_recursive with $algo...${NC}" | tee -a $LOG_FILE
-    ./mincut_recursive $GRAPH $algo -r 42 -v 2>&1 | tee -a $LOG_FILE
-    echo "" | tee -a $LOG_FILE
-done
+# Sequential - mincut_recursive only takes graph path, no algorithm parameter
+echo -e "${YELLOW}Testing mincut_recursive...${NC}" | tee -a $LOG_FILE
+./mincut_recursive $GRAPH -v 2>&1 | tee -a $LOG_FILE
+echo "" | tee -a $LOG_FILE
 
-# Parallel
-for algo in "${PAR_ALGOS[@]}"; do
-    for thread in "${THREADS[@]}"; do
-        echo -e "${YELLOW}Testing mincut_recursive_parallel with $algo (threads=$thread)...${NC}" | tee -a $LOG_FILE
-        ./mincut_recursive_parallel $GRAPH $algo -p $thread -r 42 -v 2>&1 | tee -a $LOG_FILE
-        echo "" | tee -a $LOG_FILE
-    done
+# Parallel - different thread counts
+for thread in "${THREADS[@]}"; do
+    echo -e "${YELLOW}Testing mincut_recursive_parallel (threads=$thread)...${NC}" | tee -a $LOG_FILE
+    ./mincut_recursive_parallel $GRAPH -v 2>&1 | tee -a $LOG_FILE
+    echo "" | tee -a $LOG_FILE
 done
 
 # ================================
@@ -204,7 +200,8 @@ REFERENCE_CUT=""
 
 for algo in ks noi matula vc pr cactus; do
     # Get first occurrence of each sequential algorithm (from base mincut, not parallel)
-    LINE=$(grep "algo=$algo " $RESULTS_TMP | grep -v "par" | head -1)
+    # Note: algo names have 'default' suffix, e.g., 'noidefault', 'vcdefault'
+    LINE=$(grep "algo=${algo}" $RESULTS_TMP | grep -v "par" | head -1)
 
     if [ -n "$LINE" ]; then
         TIME=$(echo "$LINE" | grep -o "time=[0-9.]*" | cut -d= -f2)
@@ -333,7 +330,8 @@ for variant in "mincut" "mincut_contract" "mincut_heavy" "mincut_recursive"; do
     # Extract variant name for display
     VARIANT_NAME=$(echo "$variant" | sed 's/mincut_//' | sed 's/mincut/base/')
 
-    LINE=$(grep "algo=vc " $RESULTS_TMP | grep -v "par" | head -1)
+    # Note: algo names have 'default' suffix, e.g., 'vcdefault'
+    LINE=$(grep "algo=vc" $RESULTS_TMP | grep -v "par" | head -1)
 
     if [ -n "$LINE" ]; then
         TIME=$(echo "$LINE" | grep -o "time=[0-9.]*" | cut -d= -f2)
